@@ -1,7 +1,7 @@
 # python-unix-shell
 
 ## Phases:
-- [ ] Understanding Linux system calls and fundamentals<br>
+- [x] Understanding Linux system calls and fundamentals<br>
   ### System calls:
   * https://www.youtube.com/watch?v=lhToWeuWWfw
   * https://www.youtube.com/watch?v=EavqupVh8ls
