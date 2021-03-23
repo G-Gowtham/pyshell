@@ -1,11 +1,16 @@
 
 from getpass import getuser
+from socket import gethostname
+from os import getcwd
+from termcolor import colored
 
 def main():
-    user = getuser()
-
+    user_name = getuser()
+    host_name = gethostname()
+    directory = getcwd()
     while True:
-        cmd = input(f"{user}@ >>>")
+        ps1 = f"{user_name}@{host_name} : {directory}$ "
+        cmd = input(colored(ps1, 'green'))
 
 if __name__ == "__main__":
     main()
