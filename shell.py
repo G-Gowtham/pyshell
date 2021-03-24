@@ -36,15 +36,24 @@ def execute_pipe(cmd, pipe_input):
     cmd_output = subprocess.Popen(shlex.split(cmd), stdin = subprocess.PIPE, stdout = subprocess.PIPE)
     out,err = cmd_output.communicate(input= (pipe_input.strip()+"\n").encode())
     cmd_output.wait()
-    return {"returncode": cmd_output.returncode, "stdout": out.decode(), "stderr": err}
 
-def redirect_out(location, cmd_output): # '>'
+    if out:
+        out = out.decode()
+    else:
+        err = err.decode()
+
+    return {"returncode": cmd_output.returncode, "stdout": out, "stderr": err}
+
+def redirect_out(symbol, location, cmd_output): # '>'
+    out = "stdout"
+    if len(symbol) == 2 and ord(symbol[0]) == 50:
+        out = "stderr"
     with open(location, "w") as f:
-        f.writelines(cmd_output["stdout"])
+        f.writelines(cmd_output[out])
 
-def execute_redirection(sysmbol, location, cmd_output):
-    if sysmbol == '>':
-        redirect_out(location, cmd_output)
+def execute_redirection(symbol, location, cmd_output):
+    if symbol.endswith(">"):
+        redirect_out(symbol, location, cmd_output)
 
     return {"returncode": 0, 'stdout': "", 'stdin': ""}
 
@@ -68,7 +77,7 @@ def custom_parser(cmd):
     tmp = ""
 
     for word in cmd.split():
-        if word == '|' or word == '>' or  word == '<':
+        if word == '|' or word.endswith(">") or  word.endswith("<"):
             cmd_list.append(tmp)
             cmd_list.append(word)
             tmp = ""
@@ -110,7 +119,7 @@ def shell():
             if line == "|":
                 pipe_check = 1
                 continue
-            elif line == ">" or line == "<":
+            elif line.endswith(">") or  line.endswith("<"):
                 redirect_symbol = line
                 redirect_check = 1
                 continue
