@@ -51,6 +51,13 @@ def redirect_out(symbol, location, cmd_output): # '>'
     with open(location, "w") as f:
         f.writelines(cmd_output[out])
 
+def redirect_in(cmd): # '<'
+    if "<" not in cmd.split():
+        return cmd
+
+    command, file_name = cmd.rsplit('<',1)
+    return f"cat {file_name} | {command}"
+
 def execute_redirection(symbol, location, cmd_output):
     if symbol.endswith(">"):
         redirect_out(symbol, location, cmd_output)
@@ -108,6 +115,8 @@ def shell():
         
         if cmd == "exit":
                 break
+        
+        cmd = redirect_in(cmd)
         cmd_list = custom_parser(cmd)
 
         pipe_check = 0
