@@ -21,11 +21,8 @@ def get_ps1():
     ps1 = f"{user_name}@{host_name} : {directory}$ "  #ps1 => primary prompt variable
     return ps1
 
-
-
 def complete_line(text, state):
     return (glob.glob(text+'*')+[None])[state]
-
 
 def execute_cmd(cmd):
     try:
@@ -40,6 +37,16 @@ def execute_pipe(cmd, pipe_input):
     out,err = cmd_output.communicate(input= (pipe_input.strip()+"\n").encode())
     cmd_output.wait()
     return {"returncode": cmd_output.returncode, "stdout": out.decode(), "stderr": err}
+
+def redirect_out(location, cmd_output): # '>'
+    with open(location, "w") as f:
+        f.writelines(cmd_output["stdout"])
+
+def execute_redirection(sysmbol, location, cmd_output):
+    if sysmbol == '>':
+        redirect_out(location, cmd_output)
+
+    return {"returncode": 0, 'stdout': "", 'stdin': ""}
 
 def pre_loop(histfile):
     if readline and exists(histfile):
@@ -58,10 +65,9 @@ def parse_inputs():
 
 def custom_parser(cmd):
     cmd_list = []
-
     tmp = ""
+
     for word in cmd.split():
-        
         if word == '|' or word == '>' or  word == '<':
             cmd_list.append(tmp)
             cmd_list.append(word)
@@ -97,15 +103,25 @@ def shell():
 
         pipe_check = 0
         cmd_output_dict = {}
+        redirect_check = 0
+        redirect_symbol = ""
 
         for line in cmd_list:
             if line == "|":
                 pipe_check = 1
                 continue
+            elif line == ">" or line == "<":
+                redirect_symbol = line
+                redirect_check = 1
+                continue
             
             if pipe_check == 1:
                 cmd_output_dict = execute_pipe(line,cmd_output_dict["stdout"])
                 pipe_check = 0
+            elif redirect_check == 1:
+                cmd_output_dict = execute_redirection(redirect_symbol, line, cmd_output_dict)
+                redirect_check = 0
+                redirect_symbol = ""
             else:
                 cmd_output_dict = execute_cmd(line)
 
