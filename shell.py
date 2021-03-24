@@ -37,8 +37,13 @@ def complete_line(text, state):
 
 
 def execute_cmd(cmd):
-    cmd_output = subprocess.run(cmd, shell= True, capture_output= True, text= True, timeout= 15)
-    return cmd_output
+    
+    try:
+        cmd_output = subprocess.run(cmd, shell= True, capture_output= True, text= True, timeout= 15)
+        return {"returncode": cmd_output.returncode, "stdout": cmd_output.stdout, "stderr": cmd_output.stderr}
+    except subprocess.TimeoutExpired as e:
+        return {"returncode": 1, "stdout": "", 
+        "stderr": "TIMEOUT Exception: It seems you are running a interative process or your command takes more than 15s for execution, try without -n flag\n"}
 
 def pre_loop(histfile):
     if readline and exists(histfile):
@@ -74,13 +79,12 @@ def non_interactive():
         if cmd == "exit":
             break
 
-        cmd_output = execute_cmd(cmd)
+        cmd_output_dict = execute_cmd(cmd)
 
-        print(cmd_output)
-        if cmd_output.returncode:
-            print(colored(cmd_output.stderr,"red"), end="")
+        if cmd_output_dict["returncode"]:
+            print(colored(cmd_output_dict["stderr"],"red"), end="")
         else:
-            print(cmd_output.stdout, end="")
+            print(cmd_output_dict["stdout"], end="")
 
         post_loop(histfile, histfile_size)
 
