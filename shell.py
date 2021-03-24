@@ -12,6 +12,7 @@ from os.path import expanduser, exists
 import subprocess
 import readline, glob
 import argparse
+import shlex
 
 def get_ps1():
     user_name = getuser()
@@ -20,16 +21,6 @@ def get_ps1():
     ps1 = f"{user_name}@{host_name} : {directory}$ "  #ps1 => primary prompt variable
     return ps1
 
-def interactive():
-    ps1 = get_ps1()
-    cmd = f"/bin/bash --init-file shell-init.sh"
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell= True)
-
-    for line in iter(p.stdout.readline, b''):
-        print(line.decode(), end="")
-    p.stdout.close()
-    p.wait()
-
 
 
 def complete_line(text, state):
@@ -37,13 +28,18 @@ def complete_line(text, state):
 
 
 def execute_cmd(cmd):
-    
     try:
-        cmd_output = subprocess.run(cmd, shell= True, capture_output= True, text= True, timeout= 15)
+        cmd_output = subprocess.run(shlex.split(cmd), capture_output= True, text= True, timeout= 120)
         return {"returncode": cmd_output.returncode, "stdout": cmd_output.stdout, "stderr": cmd_output.stderr}
     except subprocess.TimeoutExpired as e:
         return {"returncode": 1, "stdout": "", 
         "stderr": "TIMEOUT Exception: It seems you are running a interative process or your command takes more than 15s for execution, try without -n flag\n"}
+
+def execute_pipe(cmd, pipe_input):
+    cmd_output = subprocess.Popen(shlex.split(cmd), stdin = subprocess.PIPE, stdout = subprocess.PIPE)
+    out,err = cmd_output.communicate(input= (pipe_input.strip()+"\n").encode())
+    cmd_output.wait()
+    return {"returncode": cmd_output.returncode, "stdout": out.decode(), "stderr": err}
 
 def pre_loop(histfile):
     if readline and exists(histfile):
@@ -60,7 +56,26 @@ def parse_inputs():
     args = parser.parse_args()
     return args
 
-def non_interactive():
+def custom_parser(cmd):
+    cmd_list = []
+
+    tmp = ""
+    for word in cmd.split():
+        
+        if word == '|' or word == '>' or  word == '<':
+            cmd_list.append(tmp)
+            cmd_list.append(word)
+            tmp = ""
+
+        else:
+            tmp = tmp + " " + word
+
+    if tmp != "":
+        cmd_list.append(tmp)
+
+    return cmd_list
+
+def shell():
 
     ps1 = get_ps1()
     #for history
@@ -74,12 +89,25 @@ def non_interactive():
 
     while True:
         pre_loop(histfile)
-
         cmd = input(colored(ps1,"blue")).strip()
+        
         if cmd == "exit":
-            break
+                break
+        cmd_list = custom_parser(cmd)
 
-        cmd_output_dict = execute_cmd(cmd)
+        pipe_check = 0
+        cmd_output_dict = {}
+
+        for line in cmd_list:
+            if line == "|":
+                pipe_check = 1
+                continue
+            
+            if pipe_check == 1:
+                cmd_output_dict = execute_pipe(line,cmd_output_dict["stdout"])
+                pipe_check = 0
+            else:
+                cmd_output_dict = execute_cmd(line)
 
         if cmd_output_dict["returncode"]:
             print(colored(cmd_output_dict["stderr"],"red"), end="")
@@ -89,13 +117,7 @@ def non_interactive():
         post_loop(histfile, histfile_size)
 
 def main():
-    args = parse_inputs()
-    mode = args.non_interactive
-
-    if mode:
-        non_interactive()
-    else:
-        interactive()
+    shell()
 
 if __name__ == "__main__":
     main()
