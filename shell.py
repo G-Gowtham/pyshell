@@ -37,7 +37,7 @@ def complete_line(text, state):
 
 
 def execute_cmd(cmd):
-    cmd_output = subprocess.run(cmd, shell= True, capture_output= True, text= True)
+    cmd_output = subprocess.run(cmd, shell= True, capture_output= True, text= True, timeout= 15)
     return cmd_output
 
 def pre_loop(histfile):
@@ -76,6 +76,7 @@ def non_interactive():
 
         cmd_output = execute_cmd(cmd)
 
+        print(cmd_output)
         if cmd_output.returncode:
             print(colored(cmd_output.stderr,"red"), end="")
         else:
