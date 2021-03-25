@@ -53,11 +53,16 @@ def execute(cmd, stdin, stdout, stderr):
 
 def redirect_out(symbol, location, p): # '>'
     out = p.stdout
-    if len(symbol) == 2 and ord(symbol[0]) == 50:
+    mode = "w"
+
+    if symbol.endswith(">>"):
+        mode = "a"
+
+    if (len(symbol) == 2 or len(symbol) == 3) and ord(symbol[0]) == 50:
         if p.stderr:
             out = p.stderr
 
-    with open(location, "w") as f:
+    with open(location, mode) as f:
         for line in iter(out.readline, b''):
             f.write(line.decode())
 
