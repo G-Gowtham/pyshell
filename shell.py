@@ -22,7 +22,7 @@ Features:
             valid syntax => wc < test.txt
             
 
-    * If you not redirecting or pipeing but still want to use "|", ">" operators with spaces escape it
+    * If you not redirecting or pipeing but still want to use "|", ">" operators with spaces escape it, this may leads to value error
         Example-1:
             In valid syntax  => echo "< html >"
             valid => echo "< html />"
@@ -62,8 +62,8 @@ def execute(cmd, stdin, stdout, stderr):
     try:
         p = subprocess.Popen(shlex.split(cmd), stdin = stdin, stdout = stdout, stderr = stderr)
         return p
-    except FileNotFoundError as e:
-        print(colored(f"Please check the command: {cmd}", "red"))
+    except (FileNotFoundError, ValueError) as e:
+        print(colored(f"Please check the command: {cmd}\nERROR: {e}", "red"))
 
 def redirect_out(symbol, location, p): # '>'
     out = p.stdout
@@ -163,34 +163,37 @@ def shell():
         pipe_check = 0
         redirect_check = 0
         redirect_symbol = ""
+        p = None
 
-        for i, word in enumerate(cmd_list):
-            if word == "|":
+        for i, line in enumerate(cmd_list):
+            if line == "|":
                 pipe_check = 1
                 continue
-            elif word.endswith(">") or word.endswith(">>"):
-                redirect_symbol = word
+            elif line.endswith(">") or line.endswith(">>"):
+                redirect_symbol = line
                 redirect_check = 1
                 continue
             
             if pipe_check == 1:
+                if not p:
+                    break
                 if i == len(cmd_list)-1:
-                    p = execute(word, p.stdout, sys.stdout, sys.stderr)
+                    p = execute(line, p.stdout, sys.stdout, sys.stderr)
                 else:
-                    p = execute(word, p.stdout, subprocess.PIPE, subprocess.PIPE)
+                    p = execute(line, p.stdout, subprocess.PIPE, subprocess.PIPE)
                 pipe_check = 0
 
             elif redirect_check == 1:
-                redirect_out(redirect_symbol, word, p)
+                redirect_out(redirect_symbol, line, p)
                 redirect_check = 0
                 redirect_symbol = ""
             else:
-                p = execute(word, None, subprocess.PIPE, subprocess.PIPE)
+                p = execute(line, None, subprocess.PIPE, subprocess.PIPE)
 
             if p:
                 p.wait()
 
-        post_loop(histfile, histfile_size, raw_cmd)
+        post_loop(histfile, histfile_size)
 
 def main():
     shell()

@@ -19,7 +19,7 @@
           In valid syntax  => wc<test.txt \
           valid syntax => wc < test.txt <br><br>
 
-  * If you not redirecting or pipeing but still want to use "|", ">" operators with spaces escape it <br><br>
+  * If you not redirecting or pipeing but still want to use "|", ">" operators with spaces escape it, this may leads to value error <br><br>
       Example-1:<br>
           In valid syntax  => echo "< html >"<br>
           valid => echo "< html />"<br><br>
