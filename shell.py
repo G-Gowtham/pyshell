@@ -86,11 +86,12 @@ def execute_redirection(symbol, location, cmd_output):
     return {"returncode": 0, 'stdout': "", 'stdin': ""}
 
 def pre_loop(histfile):
-    if readline and exists(histfile):
+    if readline:
             readline.read_history_file(histfile)
 
 def post_loop(histfile, histfile_size):
     if readline:
+        readline.set_history_length(histfile_size)
         readline.write_history_file(histfile)
         
 def custom_parser(cmd):
@@ -118,6 +119,9 @@ def shell():
     ps1 = get_ps1()
     #for history
     histfile = expanduser('~/.py_unix_shell_history')
+    if not exists(histfile):
+        with open(histfile, "w+") as f:
+            pass
     histfile_size = 1000
 
     #for tab auto completion
@@ -130,6 +134,7 @@ def shell():
         if cmd == "exit":
                 break
         
+        raw_cmd = cmd
         cmd = redirect_in(cmd)
         raw_execution, cmd_list = custom_parser(cmd)
 
@@ -169,7 +174,7 @@ def shell():
             if p:
                 p.wait()
 
-        post_loop(histfile, histfile_size)
+        post_loop(histfile, histfile_size, raw_cmd)
 
 def main():
     shell()
