@@ -5,19 +5,27 @@
   * Tab can be used for file name auto-completion 
   * Supports redirection and pipes use space between commands for redirection and pipes<br><br>
       Example-1:<br>
-          valid syntax => ls | wc <br>
-          In valid syntax  => ls|wc<br><br>
+          In valid syntax  => ls|wc<br>
+          valid syntax => ls | wc <br><br>
       Example-2: <br>
-          valid syntax => ls > wc <br>
-          In valid syntax  => ls>wc <br><br>
+          In valid syntax  => ls>wc <br>
+          valid syntax => ls > wc <br><br>
       
       Example-3: <br>
           valid syntax => ls 2> wc <br>
           In valid syntax  => ls 2>wc <br><br>
-      
-      Example-4: <br>
-          valid syntax => wc < test.txt \
-          In valid syntax  => wc<test.txt 
+          
+      Example-4: <br> 
+          In valid syntax  => wc<test.txt \
+          valid syntax => wc < test.txt <br><br>
+
+  * If you not redirecting or pipeing but still want to use "|", ">" operators with spaces escape it <br><br>
+      Example-1:<br>
+          In valid syntax  => echo "< html >"<br>
+          valid => echo "< html />"<br><br>
+      Example-2:<br>
+          In valid syntax  => echo " | "<br>
+          valid => echo " \| "
 
 ## Phases:
   ### System calls:

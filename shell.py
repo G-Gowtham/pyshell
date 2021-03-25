@@ -4,21 +4,31 @@ Features:
     * Tab can be used for file name auto-completion 
     * Supports redirection and pipes use space between commands for redirection and pipes
         Example-1: 
-            valid syntax => ls | wc 
             In valid syntax  => ls|wc
+            valid syntax => ls | wc 
+            
 
         Example-2: 
-            valid syntax => ls > wc 
             In valid syntax  => ls>wc
+            valid syntax => ls > wc 
+            
         
         Example-3: 
-            valid syntax => ls 2> wc 
             In valid syntax  => ls 2>wc
-        
+            valid syntax => ls 2> wc 
+            
         Example-4: 
-            valid syntax => wc < test.txt
             In valid syntax  => wc<test.txt
-        
+            valid syntax => wc < test.txt
+            
+
+    * If you not redirecting or pipeing but still want to use "|", ">" operators with spaces escape it
+        Example-1:
+            In valid syntax  => echo "< html >"
+            valid => echo "< html />"
+        Example-2:
+            In valid syntax  => echo " | "
+            valid => echo " \| "
 """
 
 from getpass import getuser
@@ -138,7 +148,7 @@ def shell():
         
         if cmd.strip() == "":
             continue
-        
+
         raw_cmd = cmd
         cmd = redirect_in(cmd)
         raw_execution, cmd_list = custom_parser(cmd)
