@@ -14,6 +14,11 @@ import readline, glob
 import argparse
 import shlex
 
+def tab_auto_completion():
+    readline.set_completer_delims(' \t\n;')
+    readline.parse_and_bind("tab: complete")
+    readline.set_completer(complete_line)
+
 def get_ps1():
     user_name = getuser()
     host_name = gethostname()
@@ -23,6 +28,10 @@ def get_ps1():
 
 def complete_line(text, state):
     return (glob.glob(text+'*')+[None])[state]
+
+def execute_raw(cmd):
+    p = subprocess.Popen(shlex.split(cmd))
+    p.communicate()
 
 def execute_cmd(cmd):
     try:
@@ -72,22 +81,19 @@ def post_loop(histfile, histfile_size):
     if readline:
         readline.set_history_length(histfile_size)
         readline.write_history_file(histfile)
-
-def parse_inputs():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-n","--non-interactive", help="Used to run commands in Non-Interative mode", action="store_true")
-    args = parser.parse_args()
-    return args
+        
 
 def custom_parser(cmd):
     cmd_list = []
     tmp = ""
+    raw_execution = 1
 
     for word in cmd.split():
         if word == '|' or word.endswith(">") or  word.endswith("<"):
             cmd_list.append(tmp)
             cmd_list.append(word)
             tmp = ""
+            raw_execution = 0
 
         else:
             tmp = tmp + " " + word
@@ -95,7 +101,7 @@ def custom_parser(cmd):
     if tmp != "":
         cmd_list.append(tmp)
 
-    return cmd_list
+    return raw_execution, cmd_list
 
 def shell():
 
@@ -105,9 +111,7 @@ def shell():
     histfile_size = 1000
 
     #for tab auto completion
-    readline.set_completer_delims(' \t\n;')
-    readline.parse_and_bind("tab: complete")
-    readline.set_completer(complete_line)
+    tab_auto_completion()
 
     while True:
         pre_loop(histfile)
@@ -117,7 +121,11 @@ def shell():
                 break
         
         cmd = redirect_in(cmd)
-        cmd_list = custom_parser(cmd)
+        raw_execution, cmd_list = custom_parser(cmd)
+
+        if raw_execution:
+            execute_raw(cmd)
+            continue
 
         pipe_check = 0
         cmd_output_dict = {}
