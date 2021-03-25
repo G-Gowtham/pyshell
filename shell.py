@@ -13,6 +13,7 @@ import subprocess
 import readline, glob
 import argparse
 import shlex
+import sys
 
 def tab_auto_completion():
     readline.set_completer_delims(' \t\n;')
@@ -29,29 +30,13 @@ def get_ps1():
 def complete_line(text, state):
     return (glob.glob(text+'*')+[None])[state]
 
-def execute_raw(cmd):
-    p = subprocess.Popen(shlex.split(cmd))
-    p.communicate()
+def execute(cmd, stdin, stdout):
+    p = subprocess.Popen(shlex.split(cmd), stdin = stdin, stdout = stdout)
 
-def execute_cmd(cmd):
-    try:
-        cmd_output = subprocess.run(shlex.split(cmd), capture_output= True, text= True, timeout= 120)
-        return {"returncode": cmd_output.returncode, "stdout": cmd_output.stdout, "stderr": cmd_output.stderr}
-    except subprocess.TimeoutExpired as e:
-        return {"returncode": 1, "stdout": "", 
-        "stderr": "TIMEOUT Exception: It seems you are running a interative process or your command takes more than 15s for execution, try without -n flag\n"}
-
-def execute_pipe(cmd, pipe_input):
-    cmd_output = subprocess.Popen(shlex.split(cmd), stdin = subprocess.PIPE, stdout = subprocess.PIPE)
-    out,err = cmd_output.communicate(input= (pipe_input.strip()+"\n").encode())
-    cmd_output.wait()
-
-    if out:
-        out = out.decode()
-    else:
-        err = err.decode()
-
-    return {"returncode": cmd_output.returncode, "stdout": out, "stderr": err}
+    if type(stdin) == type(sys.stdin) or type(stdout) == type(sys.stdout):
+        p.wait()
+    
+    return p
 
 def redirect_out(symbol, location, cmd_output): # '>'
     out = "stdout"
@@ -82,7 +67,6 @@ def post_loop(histfile, histfile_size):
         readline.set_history_length(histfile_size)
         readline.write_history_file(histfile)
         
-
 def custom_parser(cmd):
     cmd_list = []
     tmp = ""
@@ -124,37 +108,36 @@ def shell():
         raw_execution, cmd_list = custom_parser(cmd)
 
         if raw_execution:
-            execute_raw(cmd)
+            execute(cmd, sys.stdin, sys.stdout)
             continue
 
         pipe_check = 0
-        cmd_output_dict = {}
         redirect_check = 0
         redirect_symbol = ""
 
-        for line in cmd_list:
-            if line == "|":
+        for i, word in enumerate(cmd_list):
+            if word == "|":
                 pipe_check = 1
                 continue
-            elif line.endswith(">") or  line.endswith("<"):
-                redirect_symbol = line
+            elif word.endswith(">") or  word.endswith("<"):
+                redirect_symbol = word
                 redirect_check = 1
                 continue
             
             if pipe_check == 1:
-                cmd_output_dict = execute_pipe(line,cmd_output_dict["stdout"])
+                if i == len(cmd_list)-1:
+                    p = execute(word, p.stdout, sys.stdout)
+                else:
+                    p = execute(word, p.stdout, subprocess.PIPE)
                 pipe_check = 0
+
             elif redirect_check == 1:
-                cmd_output_dict = execute_redirection(redirect_symbol, line, cmd_output_dict)
                 redirect_check = 0
                 redirect_symbol = ""
             else:
-                cmd_output_dict = execute_cmd(line)
+                p = execute(word, None, subprocess.PIPE)
 
-        if cmd_output_dict["returncode"]:
-            print(colored(cmd_output_dict["stderr"],"red"), end="")
-        else:
-            print(cmd_output_dict["stdout"], end="")
+            # p.wait()
 
         post_loop(histfile, histfile_size)
 
