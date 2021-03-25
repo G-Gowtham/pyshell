@@ -48,8 +48,12 @@ def complete_line(text, state):
     return (glob.glob(text+'*')+[None])[state]
 
 def execute(cmd, stdin, stdout, stderr):
-    p = subprocess.Popen(shlex.split(cmd), stdin = stdin, stdout = stdout, stderr = stderr)
-    return p
+    
+    try:
+        p = subprocess.Popen(shlex.split(cmd), stdin = stdin, stdout = stdout, stderr = stderr)
+        return p
+    except FileNotFoundError as e:
+        print(colored(f"Please check the command: {cmd}", "red"))
 
 def redirect_out(symbol, location, p): # '>'
     out = p.stdout
@@ -130,7 +134,8 @@ def shell():
 
         if raw_execution:
             p = execute(cmd, sys.stdin, sys.stdout, sys.stderr)
-            p.wait()
+            if p:
+                p.wait()
             continue
 
         pipe_check = 0
@@ -160,7 +165,8 @@ def shell():
             else:
                 p = execute(word, None, subprocess.PIPE, subprocess.PIPE)
 
-            p.wait()
+            if p:
+                p.wait()
 
         post_loop(histfile, histfile_size)
 
