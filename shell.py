@@ -32,18 +32,16 @@ def complete_line(text, state):
 
 def execute(cmd, stdin, stdout):
     p = subprocess.Popen(shlex.split(cmd), stdin = stdin, stdout = stdout)
-
-    if type(stdin) == type(sys.stdin) or type(stdout) == type(sys.stdout):
-        p.wait()
-    
     return p
 
-def redirect_out(symbol, location, cmd_output): # '>'
+def redirect_out(symbol, location, p): # '>'
     out = "stdout"
     if len(symbol) == 2 and ord(symbol[0]) == 50:
         out = "stderr"
+
     with open(location, "w") as f:
-        f.writelines(cmd_output[out])
+        for line in iter(p.stdout.readline, b''):
+            f.write(line.decode())
 
 def redirect_in(cmd): # '<'
     if "<" not in cmd.split():
@@ -108,7 +106,8 @@ def shell():
         raw_execution, cmd_list = custom_parser(cmd)
 
         if raw_execution:
-            execute(cmd, sys.stdin, sys.stdout)
+            p = execute(cmd, sys.stdin, sys.stdout)
+            p.wait()
             continue
 
         pipe_check = 0
@@ -119,7 +118,7 @@ def shell():
             if word == "|":
                 pipe_check = 1
                 continue
-            elif word.endswith(">") or  word.endswith("<"):
+            elif word.endswith(">") or word.endswith(">>"):
                 redirect_symbol = word
                 redirect_check = 1
                 continue
@@ -132,12 +131,13 @@ def shell():
                 pipe_check = 0
 
             elif redirect_check == 1:
+                redirect_out(redirect_symbol, word, p)
                 redirect_check = 0
                 redirect_symbol = ""
             else:
                 p = execute(word, None, subprocess.PIPE)
 
-            # p.wait()
+            p.wait()
 
         post_loop(histfile, histfile_size)
 
