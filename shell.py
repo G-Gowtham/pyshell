@@ -58,7 +58,7 @@ def execute(cmd, stdin, stdout, stderr):
 def redirect_out(symbol, location, p): # '>'
     out = p.stdout
     mode = "w"
-
+    location = expanduser(location)
     if symbol.endswith(">>"):
         mode = "a"
 
@@ -75,6 +75,8 @@ def redirect_in(cmd): # '<'
         return cmd
 
     command, file_name = cmd.rsplit('<',1)
+    file_name =  expanduser(file_name)
+    
     return f"cat {file_name} | {command}"
 
 def execute_redirection(symbol, location, cmd_output):
@@ -89,7 +91,6 @@ def pre_loop(histfile):
 
 def post_loop(histfile, histfile_size):
     if readline:
-        readline.set_history_length(histfile_size)
         readline.write_history_file(histfile)
         
 def custom_parser(cmd):
