@@ -1,7 +1,24 @@
 """
 Features:
     * Up and down arrows can used to navigate across history of commands 
-    * Tab can be used for file auto-completion 
+    * Tab can be used for file name auto-completion 
+    * Supports redirection and pipes use space between commands for redirection and pipes
+        Example-1: 
+            valid syntax => ls | wc 
+            In valid syntax  => ls|wc
+
+        Example-2: 
+            valid syntax => ls > wc 
+            In valid syntax  => ls>wc
+        
+        Example-3: 
+            valid syntax => ls 2> wc 
+            In valid syntax  => ls 2>wc
+        
+        Example-4: 
+            valid syntax => wc < test.txt
+            In valid syntax  => wc<test.txt
+        
 """
 
 from getpass import getuser
