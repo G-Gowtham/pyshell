@@ -99,14 +99,16 @@ def custom_parser(cmd):
     tmp = ""
     raw_execution = 1
 
-    for word in cmd.split():
-        if word == '|' or word.endswith(">") or  word.endswith("<"):
+    for i,word in enumerate(cmd.split()):
+        if word == '|' or (word.endswith(">") and len(word)<4 and '\\' not in word):
             cmd_list.append(tmp)
             cmd_list.append(word)
             tmp = ""
             raw_execution = 0
 
         else:
+            word = word.replace("\>",">")
+            word = word.replace("\|","|")
             tmp = tmp + " " + word
 
     if tmp != "":
@@ -134,12 +136,16 @@ def shell():
         if cmd == "exit":
                 break
         
+        if cmd.strip() == "":
+            continue
+        
         raw_cmd = cmd
         cmd = redirect_in(cmd)
         raw_execution, cmd_list = custom_parser(cmd)
+        #print(cmd_list)
 
         if raw_execution:
-            p = execute(cmd, sys.stdin, sys.stdout, sys.stderr)
+            p = execute(cmd_list[0], sys.stdin, sys.stdout, sys.stderr)
             if p:
                 p.wait()
             continue
