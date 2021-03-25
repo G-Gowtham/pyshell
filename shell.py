@@ -30,17 +30,18 @@ def get_ps1():
 def complete_line(text, state):
     return (glob.glob(text+'*')+[None])[state]
 
-def execute(cmd, stdin, stdout):
-    p = subprocess.Popen(shlex.split(cmd), stdin = stdin, stdout = stdout)
+def execute(cmd, stdin, stdout, stderr):
+    p = subprocess.Popen(shlex.split(cmd), stdin = stdin, stdout = stdout, stderr = stderr)
     return p
 
 def redirect_out(symbol, location, p): # '>'
-    out = "stdout"
+    out = p.stdout
     if len(symbol) == 2 and ord(symbol[0]) == 50:
-        out = "stderr"
+        if p.stderr:
+            out = p.stderr
 
     with open(location, "w") as f:
-        for line in iter(p.stdout.readline, b''):
+        for line in iter(out.readline, b''):
             f.write(line.decode())
 
 def redirect_in(cmd): # '<'
@@ -106,7 +107,7 @@ def shell():
         raw_execution, cmd_list = custom_parser(cmd)
 
         if raw_execution:
-            p = execute(cmd, sys.stdin, sys.stdout)
+            p = execute(cmd, sys.stdin, sys.stdout, sys.stderr)
             p.wait()
             continue
 
@@ -125,9 +126,9 @@ def shell():
             
             if pipe_check == 1:
                 if i == len(cmd_list)-1:
-                    p = execute(word, p.stdout, sys.stdout)
+                    p = execute(word, p.stdout, sys.stdout, sys.stderr)
                 else:
-                    p = execute(word, p.stdout, subprocess.PIPE)
+                    p = execute(word, p.stdout, subprocess.PIPE, subprocess.PIPE)
                 pipe_check = 0
 
             elif redirect_check == 1:
@@ -135,7 +136,7 @@ def shell():
                 redirect_check = 0
                 redirect_symbol = ""
             else:
-                p = execute(word, None, subprocess.PIPE)
+                p = execute(word, None, subprocess.PIPE, subprocess.PIPE)
 
             p.wait()
 
