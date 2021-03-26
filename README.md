@@ -2,7 +2,7 @@
 
 ## Installation:
     git clone https://github.com/G-Gowtham/python-unix-shell.git
-    cd pyshell
+    cd python-unix-shell
     pip3 install .
 
 ## Usage:
@@ -11,7 +11,8 @@
   * Up and down arrows can used to navigate across history of commands 
   * Tab can be used for file name auto-completion 
   * Supports redirection and pipes use space between commands for redirection and pipes<br><br>
-  
+  <div>
+
     Example-1:<br>
         In valid syntax  => ls|wc<br>
         valid syntax => ls | wc <br><br>
@@ -29,9 +30,12 @@
         valid syntax => wc < test.txt <br><br>
 
   * If you not redirecting or pipeing but still want to use "|", ">" operators with spaces escape it, this may leads to value error <br><br>
+<div>
+
       Example-1:<br>
           In valid syntax  => echo "< html >"<br>
           valid => echo "< html />"<br><br>
+
       Example-2:<br>
           In valid syntax  => echo " | "<br>
           valid => echo " \| "
@@ -55,17 +59,3 @@
   * https://stackoverflow.com/questions/163542/how-do-i-pass-a-string-into-subprocess-popen-using-the-stdin-argument
 
 
-# <i>mould</i> - A minimalistic templating engine for Python
-
-This Python library helps to render HTML pages and plain text  with variable substitutions, if conditions and for loops.
-
-
-## Templating syntax :
-
-## To delcare variables enclose the variable name with '{{' and '}}'
-
-    Hello {{ text }} -- 'text' is the variable here
-
-You can use the same syntax to write variable expressions.
-
-    This is line number {{ n+10 }}
