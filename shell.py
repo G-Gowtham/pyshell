@@ -57,15 +57,19 @@ def get_ps1():
 def complete_line(text, state):
     return (glob.glob(text+'*')+[None])[state]
 
-def execute(cmd, stdin, stdout, stderr):
+def execute(raw_cmd, cmd, stdin, stdout, stderr):
     
     try:
         p = subprocess.Popen(shlex.split(cmd), stdin = stdin, stdout = stdout, stderr = stderr)
         return p
-    except (FileNotFoundError, ValueError) as e:
-        print(colored(f"Please check the command: {cmd}\nERROR: {e}", "red"))
+    except (FileNotFoundError, ValueError, IndexError) as e:
+        print(colored(f"Please check the command: {raw_cmd}\nERROR: {e}", "red"))
 
 def redirect_out(symbol, location, p): # '>'
+
+    if not p:
+        return
+
     out = p.stdout
     mode = "w"
     location = expanduser(location)
@@ -75,19 +79,24 @@ def redirect_out(symbol, location, p): # '>'
     if (len(symbol) == 2 or len(symbol) == 3) and ord(symbol[0]) == 50:
         if p.stderr:
             out = p.stderr
-
-    with open(location, mode) as f:
-        for line in iter(out.readline, b''):
-            f.write(line.decode())
+    try:
+        with open(location, mode) as f:
+            for line in iter(out.readline, b''):
+                f.write(line.decode())
+    except FileNotFoundError as e:
+        print(colored(f"ERROR FileNotFoundError: {e}", "red"))
 
 def redirect_in(cmd): # '<'
     if "<" not in cmd.split():
         return cmd
 
-    command, file_name = cmd.rsplit('<',1)
-    file_name =  expanduser(file_name)
     
-    return f"cat {file_name} | {command}"
+    command, file_name = cmd.rsplit('<',1)
+
+    if cmd and file_name:
+        file_name =  expanduser(file_name)
+        return f"cat {file_name} | {command}"
+    return cmd
 
 def execute_redirection(symbol, location, cmd_output):
     if symbol.endswith(">"):
@@ -155,7 +164,7 @@ def shell():
         #print(cmd_list)
 
         if raw_execution:
-            p = execute(cmd_list[0], sys.stdin, sys.stdout, sys.stderr)
+            p = execute(raw_cmd, cmd_list[0], sys.stdin, sys.stdout, sys.stderr)
             if p:
                 p.wait()
             continue
@@ -178,9 +187,9 @@ def shell():
                 if not p:
                     break
                 if i == len(cmd_list)-1:
-                    p = execute(line, p.stdout, sys.stdout, sys.stderr)
+                    p = execute(raw_cmd, line, p.stdout, sys.stdout, sys.stderr)
                 else:
-                    p = execute(line, p.stdout, subprocess.PIPE, subprocess.PIPE)
+                    p = execute(raw_cmd, line, p.stdout, subprocess.PIPE, subprocess.PIPE)
                 pipe_check = 0
 
             elif redirect_check == 1:
@@ -188,7 +197,7 @@ def shell():
                 redirect_check = 0
                 redirect_symbol = ""
             else:
-                p = execute(line, None, subprocess.PIPE, subprocess.PIPE)
+                p = execute(raw_cmd, line, None, subprocess.PIPE, subprocess.PIPE)
 
             if p:
                 p.wait()
