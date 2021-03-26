@@ -7,7 +7,9 @@
 
 ## Usage:
     python3 -m pyshell
+
 ## Shell features:
+  * 'exit' command is used to exit the shell 
   * Up and down arrows can used to navigate across history of commands 
   * Tab can be used for file name auto-completion 
   * Supports redirection and pipes use space between commands for redirection and pipes<br><br>

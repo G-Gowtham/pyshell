@@ -33,7 +33,7 @@ Features:
 
 from getpass import getuser
 from socket import gethostname
-from os import getcwd
+from os import getcwd, chdir
 from termcolor import colored
 from os.path import expanduser, exists
 import subprocess
@@ -137,7 +137,6 @@ def custom_parser(cmd):
 
 def shell():
 
-    ps1 = get_ps1()
     #for history
     histfile = expanduser('~/.py_unix_shell_history')
     if not exists(histfile):
@@ -149,11 +148,13 @@ def shell():
     tab_auto_completion()
 
     while True:
+        ps1 = get_ps1()
         pre_loop(histfile)
         cmd = input(colored(ps1,"blue")).strip()
         
         if cmd == "exit":
                 break
+        
         
         if cmd.strip() == "":
             continue
@@ -164,6 +165,12 @@ def shell():
         #print(cmd_list)
 
         if raw_execution:
+
+            cd_check = cmd_list[0].strip().split()
+            if cd_check[0] == "cd" and len(cd_check) == 2:
+                chdir(expanduser(cd_check[1]))
+                continue
+
             p = execute(raw_cmd, cmd_list[0], sys.stdin, sys.stdout, sys.stderr)
             if p:
                 p.wait()
@@ -175,6 +182,7 @@ def shell():
         p = None
 
         for i, line in enumerate(cmd_list):
+
             if line == "|":
                 pipe_check = 1
                 continue
