@@ -1,2 +1,6 @@
 test.py
 test.txt
+build/*
+dist/*
+pyshell.egg-info/*
+
