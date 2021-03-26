@@ -3,4 +3,5 @@ test.txt
 build/*
 dist/*
 pyshell.egg-info/*
+pyshell/__pycache__/*
 
