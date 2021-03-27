@@ -87,7 +87,7 @@ def redirect_in(cmd): # '<'
     #print(command, file_name)
 
     try:
-        if command and file_name:
+        if command and file_name and command.count("'") % 2 == 0 and command.count('"') % 2 == 0:
             command = command.strip()
             file_name = file_name.strip()
 
