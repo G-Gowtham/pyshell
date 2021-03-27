@@ -15,21 +15,23 @@
   * Supports redirection and pipes use space between commands for redirection and pipes<br><br>
   <div>
 
-    Example-1:<br>
-        valid syntax  => ls|wc<br>
-        valid syntax => ls | wc <br><br>
+     Example-1: 
+            valid syntax  => ls|wc
+            valid syntax => ls | wc 
+            
 
-    Example-2: <br>
-        valid syntax  => ls>wc <br>
-        valid syntax => ls > wc <br><br>
-
-    Example-3: <br>
-        valid syntax => ls 2> wc <br>
-        In valid syntax  => ls 2>wc <br><br>
-
-    Example-4: <br> 
-        valid syntax  => wc<test.txt \
-        valid syntax => wc < test.txt <br><br>
+        Example-2: 
+            valid syntax  => ls>wc
+            valid syntax => ls > wc 
+            
+        
+        Example-3: 
+            In valid syntax  => ls 2>wc
+            valid syntax => ls 2> wc 
+            
+        Example-4: 
+            valid syntax  => wc<test.txt
+            valid syntax => wc < test.txt
 
 ## Phases:
   ### System calls:
