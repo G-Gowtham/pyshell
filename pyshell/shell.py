@@ -62,7 +62,7 @@ def execute(raw_cmd, cmd, stdin, stdout, stderr):
     try:
         p = subprocess.Popen(shlex.split(cmd), stdin = stdin, stdout = stdout, stderr = stderr)
         return p
-    except (FileNotFoundError, ValueError, IndexError) as e:
+    except Exception as e:
         print(colored(f"Please check the command: {raw_cmd}\nERROR: {e}", "red"))
 
 def redirect_out(symbol, location, p): # '>'
@@ -113,13 +113,63 @@ def post_loop(histfile, histfile_size):
         readline.set_history_length(histfile_size)
         readline.write_history_file(histfile)
         
+def letter_parser(cmd, raw_execution, single_quotes, double_quotes):
+    cmd_list = []
+    tmp = ""
+
+    for i,letter in enumerate(cmd):
+
+        if letter == "'":
+            single_quotes += 1
+        if letter == '"':
+            double_quotes += 1
+
+
+        if letter in ['|', '>', '<'] and single_quotes % 2 == 0 and double_quotes % 2 == 0:
+            cmd_list.append(tmp)
+            cmd_list.append(letter)
+            tmp = ""
+            raw_execution = 0
+
+        else:
+            tmp = tmp + letter
+
+    if tmp != "":
+        cmd_list.append(tmp)
+
+    return raw_execution, cmd_list, single_quotes, double_quotes
+
+def unix_split(cmd):
+    single_quotes = 0
+    double_quotes = 0
+    cmd_list = []
+    cmd = cmd.strip()
+    tmp = ""
+    
+    for letter in cmd:
+        if letter == "'":
+            single_quotes += 1
+        if letter == '"':
+            double_quotes += 1
+
+        if letter == " " and single_quotes % 2 == 0 and double_quotes % 2 == 0:
+            cmd_list.append(tmp)
+            tmp = ""
+        else:
+            tmp = tmp + letter
+
+    if tmp != "":
+        cmd_list.append(tmp)
+
+    return cmd_list
+
 def custom_parser(cmd):
     cmd_list = []
     tmp = ""
     raw_execution = 1
 
-    for i,word in enumerate(cmd.split()):
-        if word == '|' or (word.endswith(">") and len(word)<4 and '\\' not in word):
+    for i,word in enumerate(unix_split(cmd)):
+        if (word.endswith(">") and len(word)<4 and '\\' not in word):
             cmd_list.append(tmp)
             cmd_list.append(word)
             tmp = ""
@@ -133,7 +183,21 @@ def custom_parser(cmd):
     if tmp != "":
         cmd_list.append(tmp)
 
-    return raw_execution, cmd_list
+    output_cmd_list = []
+    single_quotes = 0
+    double_quotes = 0
+
+    for line in cmd_list:
+        raw_execution, tmp_list, single_quotes, double_quotes = letter_parser(line, raw_execution, single_quotes, double_quotes)
+        output_cmd_list += tmp_list
+
+    for i in range(len(output_cmd_list)):
+        line = output_cmd_list.pop(0)
+        if line.strip() != "":
+            output_cmd_list.append(line)
+        
+
+    return raw_execution, output_cmd_list
 
 def shell():
 
