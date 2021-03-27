@@ -79,15 +79,23 @@ def redirect_out(symbol, location, p): # '>'
         print(colored(f"ERROR FileNotFoundError: {e}", "red"))
 
 def redirect_in(cmd): # '<'
-    if "<" not in cmd.split():
+    if "<" not in cmd:
         return cmd
 
     
     command, file_name = cmd.rsplit('<',1)
+    #print(command, file_name)
 
-    if cmd and file_name:
-        file_name =  expanduser(file_name)
-        return f"cat {file_name} | {command}"
+    try:
+        if command and file_name:
+            command = command.strip()
+            file_name = file_name.strip()
+
+            file_name =  expanduser(file_name)
+            return f"cat {file_name} | {command}"
+    except FileNotFoundError as e:
+        print(colored(f"ERROR FileNotFoundError: {e}", "red"))
+
     return cmd
 
 def execute_redirection(symbol, location, cmd_output):
