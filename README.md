@@ -16,11 +16,11 @@
   <div>
 
     Example-1:<br>
-        In valid syntax  => ls|wc<br>
+        valid syntax  => ls|wc<br>
         valid syntax => ls | wc <br><br>
 
     Example-2: <br>
-        In valid syntax  => ls>wc <br>
+        valid syntax  => ls>wc <br>
         valid syntax => ls > wc <br><br>
 
     Example-3: <br>
@@ -28,19 +28,8 @@
         In valid syntax  => ls 2>wc <br><br>
 
     Example-4: <br> 
-        In valid syntax  => wc<test.txt \
+        valid syntax  => wc<test.txt \
         valid syntax => wc < test.txt <br><br>
-
-  * If you not redirecting or pipeing but still want to use "|", ">" operators with spaces escape it, this may leads to value error <br><br>
-<div>
-
-      Example-1:<br>
-          In valid syntax  => echo "< html >"<br>
-          valid => echo "< html />"<br><br>
-
-      Example-2:<br>
-          In valid syntax  => echo " | "<br>
-          valid => echo " \| "
 
 ## Phases:
   ### System calls:
